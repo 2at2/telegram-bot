@@ -54,7 +54,7 @@ func (b *bot) AddPostIncomingCallbackListener(f ...func(pipe Pipe)) {
 
 // OnIncomingMessage handle message
 func (b *bot) OnIncomingMessage(message api.Message) {
-	b.Infof("Received message %d from %d", message.ID, message.Sender.ID)
+	b.Debugf("Received message %d from %d", message.ID, message.Sender.ID)
 
 	pipe, err := NewPipe(
 		&message,
@@ -83,7 +83,7 @@ func (b *bot) OnIncomingMessage(message api.Message) {
 
 // OnIncomingCallback handle callback
 func (b *bot) OnIncomingCallback(callback api.Callback) {
-	b.Infof("Received callback %d from %d", callback.ID, callback.Sender.ID)
+	b.Debugf("Received callback %s from %d", callback.ID, callback.Sender.ID)
 
 	pipe, err := NewPipe(
 		nil,
