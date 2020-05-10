@@ -67,6 +67,10 @@ func (p *pipeHolder) GetMessage() string {
 
 // GetCommand returns command from text
 func (p *pipeHolder) GetCommand() string {
+	if p.message == nil {
+		return ""
+	}
+
 	parts := strings.Fields(p.message.Text)
 	return "/" + strings.TrimLeft(strings.TrimSpace(parts[0]), "/")
 }
@@ -74,6 +78,28 @@ func (p *pipeHolder) GetCommand() string {
 // GetCallback returns callback
 func (p *pipeHolder) GetCallback() *api.Callback {
 	return p.callback
+}
+
+// GetSender returns sender
+func (p *pipeHolder) GetSender() *api.User {
+	if p.message != nil {
+		return &p.message.Sender
+	} else if p.callback != nil {
+		return &p.callback.Sender
+	}
+
+	return nil
+}
+
+// GetSender returns sender
+func (p *pipeHolder) GetChat() *api.Chat {
+	if p.message != nil {
+		return &p.message.Chat
+	} else if p.callback != nil {
+		return &p.callback.Message.Chat
+	}
+
+	return nil
 }
 
 // SendMessage sends message to chat
