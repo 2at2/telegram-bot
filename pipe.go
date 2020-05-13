@@ -8,15 +8,21 @@ import (
 
 // Pipe main data holder
 type Pipe interface {
+	GetSender() *api.User
+	GetChat() *api.Chat
 	GetCallback() *api.Callback
 	GetMessageId() int
+	GetMessageText() string
 	GetMessage() string
 	GetCommand() string
+	GetWhom() string
+	GetCommandAndWhom() (string, string)
 	SendMessage(message string, options *api.SendOptions) error
 	EditMessageText(message string, options *api.SendOptions) error
 	SendPhoto(photo *api.Photo, options *api.SendOptions) error
 	SendCallbackAnswer(text string, alert bool) error
 	DeleteMessage(messageId int) error
+	SendTyping() error
 }
 
 // pipeHolder pipe implementation
@@ -60,19 +66,59 @@ func (p *pipeHolder) GetMessageId() int {
 	return p.message.ID
 }
 
-// GetMessage returns raw text
-func (p *pipeHolder) GetMessage() string {
+// GetMessageText returns raw text
+func (p *pipeHolder) GetMessageText() string {
 	return p.message.Text
+}
+
+// GetMessage returns text without command
+func (p *pipeHolder) GetMessage() string {
+	text := p.GetMessageText()
+
+	if strings.HasPrefix(text, "/") {
+		parts := strings.Fields(text)
+		text = strings.Join(parts[1:], " ")
+	}
+
+	return strings.TrimSpace(text)
 }
 
 // GetCommand returns command from text
 func (p *pipeHolder) GetCommand() string {
-	if p.message == nil {
-		return ""
+	cmd, _ := p.getCommand()
+	return cmd
+}
+
+// GetWhom returns name who should read the message
+func (p *pipeHolder) GetWhom() string {
+	_, whom := p.getCommand()
+	return whom
+}
+
+// GetCommandAndWhom returns command from text
+func (p *pipeHolder) GetCommandAndWhom() (string, string) {
+	cmd, whom := p.getCommand()
+	return cmd, whom
+}
+
+// GetCommand returns command from text
+func (p *pipeHolder) getCommand() (string, string) {
+	if p.message == nil || !strings.HasPrefix(p.message.Text, "/") {
+		return "", ""
 	}
 
 	parts := strings.Fields(p.message.Text)
-	return "/" + strings.TrimLeft(strings.TrimSpace(parts[0]), "/")
+
+	whom := ""
+	cmd := strings.TrimSpace(parts[0])
+
+	if strings.Contains(cmd, "@") {
+		x := strings.Split(cmd, "@")
+		cmd = strings.TrimSpace(x[0])
+		whom = strings.TrimSpace(x[1])
+	}
+
+	return cmd, whom
 }
 
 // GetCallback returns callback
